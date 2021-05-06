@@ -1,0 +1,72 @@
+PROGRAM arxes
+STRUCT orestis
+VARS 
+CHAR a;
+ENDSTRUCT
+FUNCTION sinartisi (var1, var2)
+VARS
+INTEGER A;
+var1 = 2;
+var2 = var3 + 5 * 2^(3-7/(var1+var3));
+var4 = var3;
+var5 = function1(var1,var2);
+RETURN 3
+END_FUNCTION
+STARTMAIN
+VARS
+CHAR x, y[1], v; 
+INTEGER z, q;  
+var1 = 2;
+var2 = var3 + 5 * 2^(3-7/(var1+var3));
+var4 = var3;
+var5 = function1(var1,var2);
+PRINT ('kalispera', [var3]);
+WHILE (X>3)
+var4 = var3;
+ENDWHILE
+WHILE (x>y)
+var4 = var3;
+ENDWHILE
+WHILE (X<3)
+var4 = var3;
+ENDWHILE
+WHILE ((x<y) OR (x!=y))
+var4 = var3;
+ENDWHILE
+WHILE (X==3)
+var4 = var3;
+ENDWHILE
+WHILE (x==y)
+var4 = var3;
+ENDWHILE
+WHILE ((X!=3) AND (x==y) OR (x<y))
+var4 = var3;
+ENDWHILE
+WHILE (x!=y)
+var4 = var3;
+ENDWHILE
+FOR counter:=1 TO 100 STEP 2 
+var5 = function1(var1,var2);
+ENDFOR
+FOR counter:=3 TO 100 STEP 1
+var2 = var3 + 5 * 2^(3-7/(var1+var3));
+ENDFOR
+IF ((X!=3) AND (x==y) OR (x<y)) THEN
+var4 = var3;
+ELSEIF ((x<y) OR (x!=y))
+var5 = function1(var1,var2);
+ELSE
+var1 = 2;
+ENDIF
+SWITCH (var3 + 5 * 2^(3-7/(var1+var3)))
+CASE (var1 + var2x) :
+var4 = var3;
+var1 = 2;
+CASE (2) :
+var1 = 2;
+DEFAULT : 
+var2 = var3 + 5 * 2^(3-7/(var1+var3));
+var4 = var3;
+var5 = function1(var1,var2);
+ENDSWITCH
+ENDMAIN
