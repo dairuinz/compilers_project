@@ -11,7 +11,7 @@
 
 %option noyywrap
 
-comment       ^[%]+.*
+comment       [%]+.*
 program       (PROGRAM)
 function      (FUNCTION)
 vars          (VARS)
@@ -26,7 +26,6 @@ end_while     (ENDWHILE)
 and           (AND)
 or            (OR)
 for           (FOR)
-counter       (counter:=)
 to            (TO)
 step          (STEP)
 end_for       (ENDFOR)
@@ -44,7 +43,7 @@ break         (BREAK)
 struct        (STRUCT)
 endstruct     (ENDSTRUCT)
 typedef       (TYPEDEF)
-thetikos_aker [1-9]+
+thetikos_aker [0-9]+
 myfloat       [0-9]+\.[0-9]+
 mystring      [A-Za-z]+[A-Za-z0-9]*
 
@@ -75,7 +74,6 @@ mystring      [A-Za-z]+[A-Za-z0-9]*
 {and}             return AND;
 {or}              return OR;
 {for}             return FOR;
-{counter}         return COUNTER;
 {to}              return TO;
 {step}            return STEP;
 {end_for}         return ENDFOR;

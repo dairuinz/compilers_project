@@ -17,30 +17,38 @@
   metabliti* structs_list;
   int structs_count;
 
+  metabliti* tempvar_list;
+  int tempvar_count;
+
+  metabliti* var_list;
+  int var_count;
+
   void newstruct(char* str) {
       structs_count += 1;
-      structs_list = calloc(structs_count, sizeof(metabliti));
+      structs_list = realloc(structs_list, structs_count * sizeof(metabliti));
       strcpy(structs_list[structs_count - 1].onoma, str);
-      printf("\n\n\n%d\n\n\n\n", structs_count);
-      printf("\n%s\n\n", (structs_list[structs_count - 1].onoma));
   }
 
-  void foundstruct(char* str){
+  int foundstruct(char* str){
       int flag = 0;
       for (int i = 0; i < structs_count; i++){
           if (!strcmp(str, structs_list[i].onoma)){
             flag = 1;
-            break;
+            return flag;
           }
       }
+      return flag;
+  }
 
-      if (flag == 1){
-          printf("\n\nto onoma sinartisis iparxei idi\n\n");
-      }
-      else{
-          printf("\n\nden einai dilomeni h: %s\n\n", str);
-          exit(1);
-      }
+  void tempvar(char* str) {
+      tempvar_count += 1;
+      tempvar_list = realloc(tempvar_list, tempvar_count * sizeof(metabliti));
+      strcpy(tempvar_list[tempvar_count - 1].onoma, str); 
+  }
+
+  void cleartempvar() {
+      tempvar_count = 0;
+      tempvar_list = calloc(1, sizeof(metabliti));
   }
 
 %}
@@ -83,7 +91,6 @@
 %token AND;
 %token OR;
 %token FOR;
-%token COUNTER;
 %token TO;
 %token STEP;
 %token ENDFOR;
@@ -105,117 +112,164 @@
 %token TYPEDEF;
 
 %%
-main: program structs function entoles function_end code{
-    printf("\nfoyl komple\n\n");
+main: program list_structs list_function startmain {
+    
 }
+    | program list_function startmain {
+
+    }
+    | program list_structs startmain {
+
+    }
+    | program startmain {
+
+    }
     | program {
-        printf("\nfoyl komple allo\n\n");
+        
     }     
 ;
 
-program: PROGRAM STRING {
-     printf("\nprogramma komple\n\n"); 
+program: PROGRAM STRING{
+
 }
 ;
 
-structs: STRUCT STRING VARS CHAR STRING Q_MARK ENDSTRUCT{
-    printf("\n\n======= VRHKA TO: %s\n\n", $2);
-    newstruct($2);
+list_structs: list_structs structs
+    | structs
+;
+
+structs: STRUCT STRING vars ENDSTRUCT
+    | TYPEDEF STRUCT STRING vars STRING ENDSTRUCT{
+        if (!foundstruct($3)) {
+            newstruct($3);
+        } else {
+            printf("\n\n ======== Struct \"%s\" was already defined\n\n", $3);
+            exit(1);
+        }
+    }
+;
+
+vars: VARS vars_list{
+
 }
-    | STRUCT STRING VARS CHAR STRING A_BRACKET THETIKOS_AKER D_BRACKET Q_MARK ENDSTRUCT{
-        newstruct($2);
-    }
-    | STRUCT STRING VARS CHAR THETIKOS_AKER Q_MARK ENDSTRUCT{
-        newstruct($2);
-    }
-    | TYPEDEF STRUCT STRING VARS CHAR STRING Q_MARK STRING ENDSTRUCT{
-        printf("\n\n======= VRHKA TO: %s\n\n", $3);
-        newstruct($3);
-    }
-    | TYPEDEF STRUCT STRING VARS CHAR STRING A_BRACKET THETIKOS_AKER D_BRACKET Q_MARK STRING ENDSTRUCT{
-        newstruct($3);
-    }
-    | TYPEDEF STRUCT STRING VARS CHAR THETIKOS_AKER Q_MARK STRING ENDSTRUCT{
-        newstruct($3);
-    }
 ;
 
-function: FUNCTION STRING A_PARENTHESI list D_PARENTHESI function_body{
-    printf("\nfunction komple\n\n");
-} 
-    | FUNCTION STRING function_body { 
-        printf("\nfunction xoris parameters komple\n\n");
-    }
-;
+vars_list: CHAR string_list Q_MARK vars_list{
 
-code: STARTMAIN function_body ENDMAIN{
-    printf("\ncode komple\n\n");
-} 
-    | STARTMAIN ENDMAIN { 
-    printf("\ncode komple xoris metablites\n\n");
-    }
-    | STARTMAIN function_body entoles ENDMAIN {
-        printf("\ncode komple me metablites kai entoles\n\n");
-    }
-    | STARTMAIN entoles ENDMAIN {
-        printf("\ncode komple xoris metablites me entoles\n\n");
-    }
-    | STARTMAIN function_body entoles a_entoles ENDMAIN {
-        printf("\ncode komple me metablites kai entoles kai entoles programmatos\n\n");
-    }
-;
-
-a_entoles: p_entoles
-    | p_entoles a_entoles
-    | e_entoles
-    | e_entoles a_entoles
-;
-
-p_entoles: entoles_while
-    | entoles_while p_entoles
-    | entoles_for
-    | entoles_for p_entoles
-;
-
-e_entoles: entoles_if
-    | entoles_if e_entoles
-    | entoles_switch
-    | entoles_switch e_entoles
-;
-
-case_s: CASE prajeis COLON entoles
-    | CASE prajeis COLON entoles case_s
-;
-
-entoles_switch: SWITCH prajeis case_s DEFAULT COLON entoles ENDSWITCH{
-    printf("\nswitch\n\n");
 }
-    | SWITCH prajeis case_s ENDSWITCH{
-        printf("\nswitch\n\n");
+    | INTEGER string_list Q_MARK vars_list {
+
+    }
+    | CHAR string_list Q_MARK
+    | INTEGER string_list Q_MARK
+;
+
+string_list: STRING A_BRACKET THETIKOS_AKER D_BRACKET KOMMA string_list {
+        tempvar($1);
+    }
+    | STRING KOMMA string_list {
+        tempvar($1);
+    }
+    | STRING A_BRACKET THETIKOS_AKER D_BRACKET {
+        tempvar($1);
+    }
+    | STRING {
+        tempvar($1);
     }
 ;
 
-if_comp: ELSEIF condition
-    | ELSE
+list_function: list_function function
+    | function
 ;
 
-entoles_if: if_comp entoles entoles_if{
-    printf("\nelseif or else\n\n");
+function: FUNCTION STRING A_PARENTHESI string_list D_PARENTHESI vars entoles return END_FUNCTION
+    | FUNCTION STRING A_PARENTHESI D_PARENTHESI vars entoles return END_FUNCTION
+    | FUNCTION STRING A_PARENTHESI string_list D_PARENTHESI entoles return END_FUNCTION
+    | FUNCTION STRING A_PARENTHESI D_PARENTHESI entoles return END_FUNCTION
+;
+
+return: RETURN THETIKOS_AKER Q_MARK
+    | RETURN STRING Q_MARK
+;
+
+list_entoles: list_entoles entoles
+    | entoles
+;
+
+entoles: anathesi
+    | while
+    | for
+    | if
+    | switch 
+    | print 
+    | break 
+;
+
+print: PRINT A_PARENTHESI ARIST STRING ARIST D_PARENTHESI Q_MARK
+    | PRINT A_PARENTHESI ARIST STRING ARIST KOMMA string_list Q_MARK 
+;
+
+break: BREAK Q_MARK
+;
+
+anathesi: STRING EQUALS prajeis Q_MARK
+;
+
+prajeis:  prajeis ADD prajeis
+        | prajeis SUBTRACT prajeis
+        | prajeis MULTIPLY prajeis
+        | prajeis DIVIDE prajeis
+        | prajeis POWER_OF prajeis
+        | A_PARENTHESI prajeis D_PARENTHESI
+        | STRING ADD prajeis
+        | THETIKOS_AKER ADD prajeis
+        | STRING SUBTRACT prajeis
+        | THETIKOS_AKER SUBTRACT prajeis
+        | STRING MULTIPLY prajeis
+        | THETIKOS_AKER MULTIPLY prajeis
+        | STRING DIVIDE prajeis
+        | THETIKOS_AKER DIVIDE prajeis
+        | STRING POWER_OF prajeis
+        | THETIKOS_AKER POWER_OF prajeis
+        | STRING
+        | THETIKOS_AKER
+;
+
+while: WHILE condition list_entoles ENDWHILE {
+    
+}  
+;
+
+for: FOR STRING COLON EQUALS THETIKOS_AKER TO THETIKOS_AKER STEP THETIKOS_AKER list_entoles ENDFOR{
+
 }
-    | IF condition THEN entoles{
-        printf("\nif\n\n");
-    }
-    | IF condition THEN entoles entoles_if{
-        printf("\nif\n\n");
-    }
-    | ENDIF
 ;
 
-entoles_for: FOR COUNTER THETIKOS_AKER TO THETIKOS_AKER STEP THETIKOS_AKER entoles ENDFOR{
-    printf("\nfor loop\n\n");
+list_elseif: list_elseif elseif
+    | elseif
+;
+
+elseif: ELSEIF condition list_entoles
+;
+
+if: IF condition THEN list_entoles ENDIF
+    | IF condition THEN list_entoles ELSE list_entoles ENDIF
+    | IF condition THEN list_entoles list_elseif ENDIF
+    | IF condition THEN list_entoles list_elseif ELSE list_entoles ENDIF
+;
+
+list_case: list_case case
+    | case
+;
+
+case: CASE prajeis COLON list_entoles
+;
+
+switch: SWITCH prajeis list_case DEFAULT COLON list_entoles ENDSWITCH{
+
 }
-    | FOR COUNTER THETIKOS_AKER TO THETIKOS_AKER STEP THETIKOS_AKER entoles ENDFOR entoles_for{
-    printf("\nfor loop\n\n");
+    | SWITCH prajeis list_case ENDSWITCH{
+
     }
 ;
 
@@ -244,86 +298,9 @@ condition: A_PARENTHESI STRING BIGGER_THAN THETIKOS_AKER D_PARENTHESI
     | A_PARENTHESI condition D_PARENTHESI
 ;
 
-entoles_while: WHILE condition entoles ENDWHILE {
-    printf("\nwhile loop\n\n");
-}
-    | WHILE condition entoles ENDWHILE p_entoles {
-        printf("\nwhile loop\n\n");
-    }
-    
+startmain: STARTMAIN vars list_entoles ENDMAIN
+    | STARTMAIN list_entoles ENDMAIN
 ;
-
-prajeis:  prajeis ADD prajeis
-        | prajeis SUBTRACT prajeis
-        | prajeis MULTIPLY prajeis
-        | prajeis DIVIDE prajeis
-        | prajeis POWER_OF prajeis
-        | A_PARENTHESI prajeis D_PARENTHESI
-        | STRING ADD prajeis
-        | THETIKOS_AKER ADD prajeis
-        | STRING SUBTRACT prajeis
-        | THETIKOS_AKER SUBTRACT prajeis
-        | STRING MULTIPLY prajeis
-        | THETIKOS_AKER MULTIPLY prajeis
-        | STRING DIVIDE prajeis
-        | THETIKOS_AKER DIVIDE prajeis
-        | STRING POWER_OF prajeis
-        | THETIKOS_AKER POWER_OF prajeis
-        | STRING
-        | THETIKOS_AKER
-;
-
-entoli_print: PRINT A_PARENTHESI ARIST STRING ARIST D_PARENTHESI Q_MARK
-    | PRINT A_PARENTHESI ARIST  STRING ARIST KOMMA A_BRACKET STRING D_BRACKET D_PARENTHESI Q_MARK 
-;
-
-entoles: STRING EQUALS prajeis Q_MARK entoles {
-    foundstruct($1);
-}
-    | STRING EQUALS STRING A_PARENTHESI list D_PARENTHESI Q_MARK entoles{
-    foundstruct($1);
-    }
-    | STRING EQUALS prajeis Q_MARK {
-    foundstruct($1);
-    }
-    | STRING EQUALS STRING A_PARENTHESI list D_PARENTHESI Q_MARK {
-    foundstruct($1);
-    }
-    | BREAK COLON
-    | entoli_print
-;
-
-list: STRING A_BRACKET THETIKOS_AKER D_BRACKET KOMMA list{
-    newstruct($1);
-}
-    | STRING KOMMA list{
-        newstruct($1);
-    }
-    | STRING {
-        newstruct($1);
-    }
-;
-
-parameters: CHAR list Q_MARK parameters
-    | INTEGER list Q_MARK parameters{}
-    | CHAR list Q_MARK
-    | INTEGER list Q_MARK
-;
-
-function_body: VARS parameters {
-    printf("\nparametroi komple\n\n");
-}
-;
-
-return: RETURN STRING
-    | RETURN THETIKOS_AKER
-;
-
-function_end: return END_FUNCTION {
-    printf("\nend of function\n\n");
-}
-;
-
 
 %%
 
@@ -340,12 +317,25 @@ int main(int argc, char** argv) {
   }
 
   structs_count = 0;
-  structs_list = calloc(structs_list, 1 * sizeof(metabliti));
+  structs_list = malloc(1 * sizeof(metabliti));
+
+  tempvar_count = 0;
+  tempvar_list = malloc(1 * sizeof(metabliti));
+
+  var_count = 0;
+  var_list = malloc(1 * sizeof(metabliti));
 
   yyin = myfile;
   
   yyparse();
-  
+
+  printf("===== END =====\n\n");
+  for (int i = 0; i < structs_count; i++) {
+      printf("[STRUCT] %d -- %s\n", i, structs_list[i].onoma);
+  }
+  for (int i = 0; i < var_count; i++) {
+      printf("[VAR]    %d -- %s\n", i, var_list[i].onoma);
+  }
 }
 
 void yyerror(const char *s) {
