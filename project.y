@@ -298,6 +298,12 @@ prajeis:  prajeis ADD prajeis
                 exit(1);
             }
         }
+        | STRING A_PARENTHESI string_list D_PARENTHESI ADD prajeis {            
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
         | THETIKOS_AKER ADD prajeis
         | STRING SUBTRACT prajeis {
             if (!foundvar($1)) { 
@@ -312,6 +318,12 @@ prajeis:  prajeis ADD prajeis
                 exit(1);
             }
         }
+        | STRING A_PARENTHESI string_list D_PARENTHESI MULTIPLY prajeis {            
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
         | THETIKOS_AKER MULTIPLY prajeis
         | STRING DIVIDE prajeis {
             if (!foundvar($1)) { 
@@ -319,8 +331,20 @@ prajeis:  prajeis ADD prajeis
                 exit(1);
             }
         }
+        | STRING A_PARENTHESI string_list D_PARENTHESI DIVIDE prajeis {            
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
         | THETIKOS_AKER DIVIDE prajeis
         | STRING POWER_OF prajeis {            
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
+        | STRING A_PARENTHESI string_list D_PARENTHESI POWER_OF prajeis {            
             if (!foundvar($1)) { 
                 printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
                 exit(1);
