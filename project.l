@@ -1,5 +1,7 @@
 %option noyywrap
 %option yylineno
+%x IN_COMMENT
+
 
 %{
   #include <stdio.h>
@@ -51,7 +53,15 @@ mystring      [A-Za-z]+[A-Za-z0-9]*
 
 
 %%
-
+<INITIAL>{
+  "/*"              BEGIN(IN_COMMENT);
+}
+<IN_COMMENT>{
+  "*/"      BEGIN(INITIAL);
+  [^*\n]+   {}; // eat comment in chunks
+  "*"       {}; // eat the lone star
+  \n        yylineno++;
+}
 {comment}         {};
 "\n"              {};
 "("               return A_PARENTHESI;
