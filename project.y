@@ -7,7 +7,8 @@
   extern int yylex();
   extern int yyparse();
   extern FILE *yyin;
- 
+  extern int yylineno;
+
   void yyerror(const char *s);
   
   typedef struct metabliti{
@@ -49,6 +50,23 @@
   void cleartempvar() {
       tempvar_count = 0;
       tempvar_list = calloc(1, sizeof(metabliti));
+  }
+
+  void newvar(char* str) {
+      var_count += 1;
+      var_list = realloc(var_list, var_count * sizeof(metabliti));
+      strcpy(var_list[var_count - 1].onoma, str);
+  }
+
+  int foundvar(char* str){
+      int flag = 0;
+      for (int i = 0; i < var_count; i++){
+          if (!strcmp(str, var_list[i].onoma)){
+            flag = 1;
+            return flag;
+          }
+      }
+      return flag;
   }
 
 %}
@@ -143,14 +161,22 @@ structs: STRUCT STRING vars ENDSTRUCT
         if (!foundstruct($3)) {
             newstruct($3);
         } else {
-            printf("\n\n ======== Struct \"%s\" was already defined\n\n", $3);
+            printf("\n\n [LINE %d] Struct \"%s\" was already defined\n\n", yylineno, $3);
             exit(1);
         }
     }
 ;
 
 vars: VARS vars_list{
-
+    for (int i = 0; i < tempvar_count; i++) {
+        if (!foundvar(tempvar_list[i].onoma)) {
+            newvar(tempvar_list[i].onoma);
+        } else {
+            printf("\n[LINE %d] Variable \"%s\" already defined\n", yylineno, tempvar_list[i].onoma);
+            exit(1);
+        }
+    }
+    cleartempvar();
 }
 ;
 
@@ -182,10 +208,42 @@ list_function: list_function function
     | function
 ;
 
-function: FUNCTION STRING A_PARENTHESI string_list D_PARENTHESI vars entoles return END_FUNCTION
-    | FUNCTION STRING A_PARENTHESI D_PARENTHESI vars entoles return END_FUNCTION
-    | FUNCTION STRING A_PARENTHESI string_list D_PARENTHESI entoles return END_FUNCTION
-    | FUNCTION STRING A_PARENTHESI D_PARENTHESI entoles return END_FUNCTION
+function: FUNCTION STRING A_PARENTHESI string_list D_PARENTHESI vars entoles return END_FUNCTION {
+        if(!foundvar($2)) {
+            newvar($2);
+        } else {
+            printf("[LINE %d] Function \"%s\" already declared\n", yylineno, $2);
+            exit(1);
+        }
+        cleartempvar();
+    }
+    | FUNCTION STRING A_PARENTHESI D_PARENTHESI vars entoles return END_FUNCTION {
+        if(!foundvar($2)) {
+            newvar($2);
+        } else {
+            printf("[LINE %d] Function \"%s\" already declared\n", yylineno, $2);
+            exit(1);
+        }
+        cleartempvar();
+    }
+    | FUNCTION STRING A_PARENTHESI string_list D_PARENTHESI entoles return END_FUNCTION {
+        if(!foundvar($2)) {
+            newvar($2);
+        } else {
+            printf("[LINE %d] Function \"%s\" already declared\n", yylineno, $2);
+            exit(1);
+        }
+        cleartempvar();
+    }
+    | FUNCTION STRING A_PARENTHESI D_PARENTHESI entoles return END_FUNCTION {
+        if(!foundvar($2)) {
+            newvar($2);
+        } else {
+            printf("[LINE %d] Function \"%s\" already declared\n", yylineno, $2);
+            exit(1);
+        }
+        cleartempvar();
+    }
 ;
 
 return: RETURN THETIKOS_AKER Q_MARK
@@ -206,13 +264,26 @@ entoles: anathesi
 ;
 
 print: PRINT A_PARENTHESI ARIST STRING ARIST D_PARENTHESI Q_MARK
-    | PRINT A_PARENTHESI ARIST STRING ARIST KOMMA string_list Q_MARK 
+    | PRINT A_PARENTHESI ARIST STRING ARIST KOMMA string_list Q_MARK {
+        for (int i = 0; i < tempvar_count; i++) {
+            if (!foundvar(tempvar_list[i].onoma)) {
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno, tempvar_list[i].onoma);
+                exit(1);
+            }
+        }
+        cleartempvar();
+    }
 ;
 
 break: BREAK Q_MARK
 ;
 
-anathesi: STRING EQUALS prajeis Q_MARK
+anathesi: STRING EQUALS prajeis Q_MARK {
+    if (!foundvar($1)) { 
+        printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+        exit(1);
+    }
+}
 ;
 
 prajeis:  prajeis ADD prajeis
@@ -221,17 +292,66 @@ prajeis:  prajeis ADD prajeis
         | prajeis DIVIDE prajeis
         | prajeis POWER_OF prajeis
         | A_PARENTHESI prajeis D_PARENTHESI
-        | STRING ADD prajeis
+        | STRING ADD prajeis {
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
         | THETIKOS_AKER ADD prajeis
-        | STRING SUBTRACT prajeis
+        | STRING SUBTRACT prajeis {
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
         | THETIKOS_AKER SUBTRACT prajeis
-        | STRING MULTIPLY prajeis
+        | STRING MULTIPLY prajeis {
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
         | THETIKOS_AKER MULTIPLY prajeis
-        | STRING DIVIDE prajeis
+        | STRING DIVIDE prajeis {
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
         | THETIKOS_AKER DIVIDE prajeis
-        | STRING POWER_OF prajeis
+        | STRING POWER_OF prajeis {            
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
         | THETIKOS_AKER POWER_OF prajeis
-        | STRING
+        | STRING {    
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
+        | STRING A_PARENTHESI string_list D_PARENTHESI {
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+            for (int i = 0; i < tempvar_count; i++) {
+                if (!foundvar(tempvar_list[i].onoma)) {
+                    printf("[LINE %d] Variable \"%s\" not declared\n", yylineno, tempvar_list[i].onoma);
+                    exit(1);
+                }
+                cleartempvar();
+            }
+        }
+        | STRING A_PARENTHESI D_PARENTHESI {
+            if (!foundvar($1)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$1);
+                exit(1);
+            }
+        }
         | THETIKOS_AKER
 ;
 
@@ -241,8 +361,11 @@ while: WHILE condition list_entoles ENDWHILE {
 ;
 
 for: FOR STRING COLON EQUALS THETIKOS_AKER TO THETIKOS_AKER STEP THETIKOS_AKER list_entoles ENDFOR{
-
-}
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }
 ;
 
 list_elseif: list_elseif elseif
@@ -279,22 +402,126 @@ and_or: AND
     | OR and_or
 ;
 
-condition: A_PARENTHESI STRING BIGGER_THAN THETIKOS_AKER D_PARENTHESI 
-    | A_PARENTHESI STRING BIGGER_THAN THETIKOS_AKER D_PARENTHESI and_or condition
-    | A_PARENTHESI STRING BIGGER_THAN STRING D_PARENTHESI
-    | A_PARENTHESI STRING BIGGER_THAN STRING D_PARENTHESI and_or condition
-    | A_PARENTHESI STRING SMALLER_THAN THETIKOS_AKER D_PARENTHESI
-    | A_PARENTHESI STRING SMALLER_THAN THETIKOS_AKER D_PARENTHESI and_or condition  
-    | A_PARENTHESI STRING SMALLER_THAN STRING D_PARENTHESI
-    | A_PARENTHESI STRING SMALLER_THAN STRING D_PARENTHESI and_or condition
-    | A_PARENTHESI STRING LOG_EQUALS THETIKOS_AKER D_PARENTHESI
-    | A_PARENTHESI STRING LOG_EQUALS THETIKOS_AKER D_PARENTHESI and_or condition
-    | A_PARENTHESI STRING LOG_EQUALS STRING D_PARENTHESI
-    | A_PARENTHESI STRING LOG_EQUALS STRING D_PARENTHESI and_or condition
-    | A_PARENTHESI STRING NOT_EQUAL THETIKOS_AKER D_PARENTHESI
-    | A_PARENTHESI STRING NOT_EQUAL THETIKOS_AKER D_PARENTHESI and_or condition
-    | A_PARENTHESI STRING NOT_EQUAL STRING D_PARENTHESI
-    | A_PARENTHESI STRING NOT_EQUAL STRING D_PARENTHESI and_or condition
+condition: A_PARENTHESI STRING BIGGER_THAN THETIKOS_AKER D_PARENTHESI {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING BIGGER_THAN THETIKOS_AKER D_PARENTHESI and_or condition {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING BIGGER_THAN STRING D_PARENTHESI {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+            if (!foundvar($4)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$4);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING BIGGER_THAN STRING D_PARENTHESI and_or condition {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+            if (!foundvar($4)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$4);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING SMALLER_THAN THETIKOS_AKER D_PARENTHESI {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING SMALLER_THAN THETIKOS_AKER D_PARENTHESI and_or condition {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }  
+    | A_PARENTHESI STRING SMALLER_THAN STRING D_PARENTHESI {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING SMALLER_THAN STRING D_PARENTHESI and_or condition {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING LOG_EQUALS THETIKOS_AKER D_PARENTHESI {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING LOG_EQUALS THETIKOS_AKER D_PARENTHESI and_or condition {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING LOG_EQUALS STRING D_PARENTHESI {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+            if (!foundvar($4)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$4);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING LOG_EQUALS STRING D_PARENTHESI and_or condition {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+            if (!foundvar($4)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$4);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING NOT_EQUAL THETIKOS_AKER D_PARENTHESI {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING NOT_EQUAL THETIKOS_AKER D_PARENTHESI and_or condition {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING NOT_EQUAL STRING D_PARENTHESI {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+            if (!foundvar($4)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$4);
+                exit(1);
+            }
+        }
+    | A_PARENTHESI STRING NOT_EQUAL STRING D_PARENTHESI and_or condition {
+            if (!foundvar($2)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$2);
+                exit(1);
+            }
+            if (!foundvar($4)) { 
+                printf("[LINE %d] Variable \"%s\" not declared\n", yylineno ,$4);
+                exit(1);
+            }
+        }
     | A_PARENTHESI condition D_PARENTHESI
 ;
 

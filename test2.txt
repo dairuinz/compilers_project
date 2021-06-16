@@ -1,18 +1,18 @@
 PROGRAM orestis
 TYPEDEF STRUCT vv 
 VARS
-INTEGER A;
+INTEGER a;
 vv ENDSTRUCT
 %comment
 TYPEDEF STRUCT vv2
 VARS
-INTEGER A;
-vv ENDSTRUCT
+INTEGER bb;
+vv2 ENDSTRUCT
 TYPEDEF STRUCT vv3
 VARS
-INTEGER A;
-vv ENDSTRUCT
-FUNCTION oo()
+INTEGER Aaa, b;
+vv3 ENDSTRUCT
+FUNCTION orestis()
 a = b;
 RETURN 0;
 END_FUNCTION
@@ -20,15 +20,12 @@ STARTMAIN
 VARS 
 INTEGER A, B;
 CHAR C, D;
-INTEGER a;
+INTEGER abc;
 FOR i := 1 TO 2 STEP 3
     FOR i := 1 TO 2 STEP 3 %comment a = b
-        a = b;
+        a = orestis(a, aa) + orestis(a, vasda);
     ENDFOR
     a = b;
 ENDFOR
-
-
-
 
 ENDMAIN

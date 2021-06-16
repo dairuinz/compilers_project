@@ -1,4 +1,5 @@
 %option noyywrap
+%option yylineno
 
 %{
   #include <stdio.h>
@@ -10,6 +11,7 @@
 %}
 
 %option noyywrap
+%option yylineno
 
 comment       [%]+.*
 program       (PROGRAM)
@@ -51,6 +53,7 @@ mystring      [A-Za-z]+[A-Za-z0-9]*
 %%
 
 {comment}         {};
+"\n"              {};
 "("               return A_PARENTHESI;
 ")"               return D_PARENTHESI;
 ","               return KOMMA;
