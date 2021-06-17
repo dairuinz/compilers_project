@@ -1,8 +1,5 @@
 PROGRAM orestis
-/*
-    comment lols ********
-% comment in comment
-            */
+
 TYPEDEF STRUCT vv 
 VARS
 INTEGER a;
@@ -14,22 +11,44 @@ INTEGER bb;
 vv2 ENDSTRUCT
 TYPEDEF STRUCT vv3
 VARS
-INTEGER Aaa, b;
+INTEGER Aaa, b, pinakas;
 vv3 ENDSTRUCT
 FUNCTION orestis()
-a = b;
+a = a + 1;
 RETURN 0;
 END_FUNCTION
+/*
+    comment lols ********
+% comment in comment
+            */
 STARTMAIN 
 VARS 
 INTEGER A, B;
 CHAR C, D;
-INTEGER abc;
+INTEGER abc, i;
 FOR i := 1 TO 2 STEP 3
     FOR i := 1 TO 2 STEP 3 %comment a = b
-        a = orestis(a, aa) + orestis(a, vasda);
+        a = orestis(a) + orestis(a, vasda);
     ENDFOR
     a = b;
+    IF (bb==0) THEN
+        WHILE (bb>1) AND (bb<100)
+            b = b + 1;
+        ENDWHILE
+    ELSEIF (bb==100)
+        WHILE (bb<20)
+            PRINT('bb', b);
+        ENDWHILE
+    ELSE
+        SWITCH (bb)
+        CASE (a):
+            a = b + bb;
+        CASE (bb):
+            PRINT('bb', bb);
+        DEFAULT: 
+            PRINT('default');
+        ENDSWITCH
+    ENDIF
 ENDFOR
 
 ENDMAIN

@@ -58,9 +58,8 @@ mystring      [A-Za-z]+[A-Za-z0-9]*
 }
 <IN_COMMENT>{
   "*/"      BEGIN(INITIAL);
-  [^*\n]+   {}; // eat comment in chunks
-  "*"       {}; // eat the lone star
-  \n        yylineno++;
+  [^*\n]+   {}; 
+  "*"       {}; 
 }
 {comment}         {};
 "\n"              {};

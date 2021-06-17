@@ -264,7 +264,7 @@ entoles: anathesi
 ;
 
 print: PRINT A_PARENTHESI ARIST STRING ARIST D_PARENTHESI Q_MARK
-    | PRINT A_PARENTHESI ARIST STRING ARIST KOMMA string_list Q_MARK {
+    | PRINT A_PARENTHESI ARIST STRING ARIST KOMMA string_list D_PARENTHESI Q_MARK {
         for (int i = 0; i < tempvar_count; i++) {
             if (!foundvar(tempvar_list[i].onoma)) {
                 printf("[LINE %d] Variable \"%s\" not declared\n", yylineno, tempvar_list[i].onoma);
